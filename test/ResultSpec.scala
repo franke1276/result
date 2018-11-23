@@ -1,6 +1,6 @@
 import java.util.concurrent.TimeUnit
 
-import models.{MyResult, MyResultFailure, MyResultSuccess, SimpleProblem}
+import models._
 import org.scalatestplus.play.{BaseOneAppPerTest, PlaySpec}
 import play.api.test.Helpers._
 import play.api.test._
@@ -19,21 +19,21 @@ class ResultSpec extends PlaySpec {
       implicit val t = FiniteDuration(10,TimeUnit.SECONDS)
 
 
-      MyResult.success(5) mustBe new MyResultSuccess(5)
+      Result.success(5) mustBe new ResultSuccess(5)
 
-      MyResult.success(5).map(_ * 5) mustBe new MyResultSuccess(25)
+      Result.success(5).map(_ * 5) mustBe new ResultSuccess(25)
 
-      MyResult.failure[Int]( SimpleProblem("p")).map(_ * 5) mustBe new MyResultFailure[Int](SimpleProblem("p"))
+      Result.failure[Int]( Problem("p", 500)).map(_ * 5) mustBe new ResultFailure[Int](Problem("p", 500))
 
 
-      def f(i:Int): MyResult[String] = if (i == 0) MyResult.success("-0-") else MyResult.failure[String](SimpleProblem("p"))
+      def f(i:Int): Result[String] = if (i == 0) Result.success("-0-") else Result.failure[String](Problem("p", 500))
 
-      MyResult.success(0).flatMap(f) mustBe MyResult.success("-0-")
-      MyResult.success(1).flatMap(f) mustBe MyResult.failure(SimpleProblem("p"))
+      Result.success(0).flatMap(f) mustBe Result.success("-0-")
+      Result.success(1).flatMap(f) mustBe Result.failure(Problem("p", 500))
 
-      MyResult.failure(SimpleProblem("a")).flatMap(f) mustBe MyResult.failure(SimpleProblem("a"))
+      Result.failure(Problem("a", 500)).flatMap(f) mustBe Result.failure(Problem("a", 500))
 
-      MyResult.fromFuture(Future.successful(MyResult.success(5))).map(_ * 5).await(t) mustBe MyResult.success(25)
+      Result.fromFuture(Future.successful(Result.success(5))).map(_ * 5).await(t) mustBe Result.success(25)
     }
   }
 

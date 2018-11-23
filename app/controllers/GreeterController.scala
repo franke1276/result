@@ -1,31 +1,31 @@
 package controllers
 
-import models.Greeting
+import models.{Problems, Result}
 import play.api.i18n.Langs
-import play.api.libs.json.Json
-import play.api.mvc.{AbstractController, ControllerComponents}
-import play.twirl.api.Html
-import services.GreetingService
+import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents}
+import services.{GreetingService, Message}
+
+import scala.concurrent.ExecutionContext.Implicits._
 
 class GreeterController(greetingService: GreetingService,
                         langs: Langs,
                         cc: ControllerComponents) extends AbstractController(cc) {
 
-  val greetingsList = Seq(
-    Greeting(1, greetingService.greetingMessage("en"), "sameer"),
-    Greeting(2, greetingService.greetingMessage("it"), "sam")
-  )
 
-  def greetings = Action {
-    Ok(Json.toJson(greetingsList))
+
+  def index(lang: String): Action[AnyContent] = Action.async {
+
+
+//   greetingService.greetingMessage(lang).map(m => views.html.index(m)).asPlayResult()
+   greetingService.greetingMessage(lang).asJsonPlayResult()
+
   }
 
-  def greetInMyLanguage = Action {
-    Ok(greetingService.greetingMessage(langs.preferred(langs.availables).language))
-  }
-
-  def index = Action {
-    Ok(Html("<h1>Welcome</h1><p>Your new application is ready.</p>"))
+  def data() = Action.async(parse.tolerantText) { req =>
+    (for {
+      j <- Result.parseJson(req.body, Problems.BAD_REQUEST.withDetails("no json"))
+      m <- Result.validateJson[Message](j, Problems.BAD_REQUEST.withDetails("not a message"))
+    } yield m).asJsonPlayResult()
   }
 
 }

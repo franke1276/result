@@ -1,6 +1,5 @@
 
-GET        /                             controllers.GreeterController.index
-GET        /greetings                    controllers.GreeterController.greetings
-GET        /greet                        controllers.GreeterController.greetInMyLanguage
+GET        /                             controllers.GreeterController.index(lang: String)
+POST        /                             controllers.GreeterController.data()
 
 GET        /assets/*file                 controllers.Assets.at(path="/public", file)

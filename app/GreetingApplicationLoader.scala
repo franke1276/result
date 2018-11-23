@@ -1,5 +1,6 @@
 
 import _root_.controllers.AssetsComponents
+import akka.actor.ActorSystem
 import com.softwaremill.macwire._
 import play.api.ApplicationLoader.Context
 import play.api._
@@ -21,10 +22,14 @@ class GreetingComponents(context: Context) extends BuiltInComponentsFromContext(
   with I18nComponents 
   with play.filters.HttpFiltersComponents {
 
+
+
+
   // set up logger
   LoggerConfigurator(context.environment.classLoader).foreach {
     _.configure(context.environment, context.initialConfiguration, Map.empty)
   }
+
 
   lazy val router: Router = {
     // add the prefix string in local scope for the Routes constructor
