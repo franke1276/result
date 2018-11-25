@@ -1,25 +1,31 @@
 package controllers
 
+import models.ZIOExtensions._
 import models.{Problems, Result}
 import play.api.i18n.Langs
 import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents}
+import scalaz.zio._
 import services.{GreetingService, Message}
 
 import scala.concurrent.ExecutionContext.Implicits._
 
 class GreeterController(greetingService: GreetingService,
                         langs: Langs,
-                        cc: ControllerComponents) extends AbstractController(cc) {
+                        cc: ControllerComponents) extends AbstractController(cc) with RTS {
 
 
 
   def index(lang: String): Action[AnyContent] = Action.async {
 
-
-//   greetingService.greetingMessage(lang).map(m => views.html.index(m)).asPlayResult()
    greetingService.greetingMessage(lang).asJsonPlayResult()
 
   }
+
+  def indexIO(lang: String): Action[AnyContent] = Action.async {
+    unsafeRun(greetingService.greetingMessageIO(lang).toResult)
+  }
+
+
 
   def data() = Action.async(parse.tolerantText) { req =>
     (for {

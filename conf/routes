@@ -1,5 +1,6 @@
 
 GET        /                             controllers.GreeterController.index(lang: String)
+GET        /IO                             controllers.GreeterController.indexIO(lang: String)
 POST        /                             controllers.GreeterController.data()
 
 GET        /assets/*file                 controllers.Assets.at(path="/public", file)

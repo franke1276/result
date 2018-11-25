@@ -8,11 +8,34 @@ import play.api.mvc.{Results, Result => PlayResult}
 
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
+import scalaz.zio._
+import scalaz.zio.interop.future._
+
+object ZIOExtensions {
+
+  implicit class ICondOps(private val ioObj: IO.type) extends AnyVal {
+    def fromCondition(b: Boolean, p: Problem): IO[Problem, Boolean] = if (b) IO.point(b) else IO.fail(p)
+  }
+
+  implicit class IOClassOps[A](private val io: IO[Problem, A]) extends Results {
+    def toResult(implicit w: Writes[A], ec: ExecutionContext): IO[Nothing, Future[PlayResult]] = {
+      io.map(v => Json.toJson(v)).map(js => Ok(js)).toFutureE(_.toException()).map(_.recover {
+        case p: models.ProblemException => p.toProblem().asJsonResultWithoutFuture()
+      })
+    }
+
+  }
+}
 
 object Problem {
   implicit val format = Json.format[Problem]
 }
+
+class ProblemException(p: Problem) extends RuntimeException(p.msg) {
+  def toProblem(): Problem = p
+}
+
 
 case class Problem(msg: String, code: Int, details: JsArray = Json.arr()) {
   private val httpReturnCodes = new play.api.mvc.Results {}
@@ -22,6 +45,10 @@ case class Problem(msg: String, code: Int, details: JsArray = Json.arr()) {
   def withDetails(s: String) = copy(details = details :+ JsString(s))
 
   def asJsonResult()(implicit ec: ExecutionContext): Future[PlayResult] = Future.successful(new httpReturnCodes.Status(code)(Json.toJson(this)))
+
+  def asJsonResultWithoutFuture()(implicit ec: ExecutionContext): PlayResult = new httpReturnCodes.Status(code)(Json.toJson(this))
+
+  def toException(): ProblemException = new ProblemException(this)
 }
 
 

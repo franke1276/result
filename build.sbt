@@ -10,3 +10,7 @@ crossScalaVersions := Seq("2.11.12", "2.12.6")
 
 libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test
 libraryDependencies += "com.softwaremill.macwire" %% "macros" % "2.3.1" % "provided"
+
+libraryDependencies += "org.scalaz" %% "scalaz-zio" % "0.3.2"
+
+libraryDependencies += "org.scalaz" %% "scalaz-zio-interop" % "0.3.2"
